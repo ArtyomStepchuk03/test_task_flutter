@@ -187,7 +187,7 @@ class _MainScreen extends State<MainScreen> with WidgetsBindingObserver {
     _saveData();
   }
 
-  void setDateOfUpdate(XmlDocument xml) {
+  void _setDateOfUpdate(XmlDocument xml) {
     setState(() => dateOfUpdate =
         'Дата обновления: ${xml.getElement('ValCurs')!.getAttribute('Date')}');
   }
@@ -200,7 +200,7 @@ class _MainScreen extends State<MainScreen> with WidgetsBindingObserver {
       }
       setState(() {
         xmlData = XmlDocument.parse(utf8.decode(res.bodyBytes));
-        setDateOfUpdate(xmlData);
+        _setDateOfUpdate(xmlData);
       });
     }).catchError((e) {
       showMessageDialog("Отсутствует соединение с сервером!");
