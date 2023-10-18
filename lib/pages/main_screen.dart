@@ -1,10 +1,14 @@
 import 'dart:convert';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:test_task_flutter/conversion.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test_task_flutter/pages/cubit/main_screen_cubit.dart';
+import 'package:test_task_flutter/pages/cubit/main_screen_state.dart';
+import 'package:test_task_flutter/utils/conversion/conversion_handler.dart';
 import 'package:xml/xml.dart';
 import 'package:http/http.dart' as http;
 import 'package:test_task_flutter/list_item.dart';
@@ -12,7 +16,7 @@ import 'package:test_task_flutter/list_item.dart';
 List<Conversion> conversionsHistory = [];
 String dateOfUpdate = '';
 var value = 0;
-XmlDocument xmlData = XmlDocument();
+// XmlDocument xmlData = XmlDocument();
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -26,7 +30,8 @@ class MainScreen extends StatefulWidget {
 class _MainScreen extends State<MainScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return BlocProvider(create: (context) => MainScreenCubit(context),
+    child: MaterialApp(
         home: RefreshIndicator(
           onRefresh: _pullRefresh,
           child: Scaffold(
@@ -46,20 +51,25 @@ class _MainScreen extends State<MainScreen> with WidgetsBindingObserver {
                           ];
                         },
                         onSelected: (value) => _selectMenuItem(value))
-              ]),
+                  ]),
               body: Column(
                 children: [
                   Padding(padding: const EdgeInsets.only(left: 10, top: 10, bottom: 10),
-                    child: Row(
-                      children: [Text(dateOfUpdate,
-                          style: const TextStyle(fontSize: 20),
-                        )
-                      ]
-                    )
+                      child: Row(
+                          children: [
+                            BlocBuilder<MainScreenCubit, MainScreenState>(
+                                builder: (context, state) {
+                                  return Text(MainScreenCubit(context).date,
+                                      style: const TextStyle(fontSize: 20)
+                                  );
+                                }
+                            )
+                          ]
+                      )
                   ),
                   Expanded(
                     child: FutureBuilder(
-                      future: _getItemsFromXml(context),
+                      future: MainScreenCubit(context).xmlItems,
                       builder: (context, data) {
                         if (data.hasData) {
                           List<ListItem>? list = data.data;
@@ -125,8 +135,8 @@ class _MainScreen extends State<MainScreen> with WidgetsBindingObserver {
                                                               try {
                                                                 setState(() => convertedValue = convert(value, double.parse(
                                                                     list![index].vunitRate
-                                                                    .toString()
-                                                                    .replaceAll(',', '.'))));
+                                                                        .toString()
+                                                                        .replaceAll(',', '.'))));
                                                                 _addToHistory(list![index], convertedValue);
                                                               } catch (e) {
                                                                 showMessageDialog('Ошибка конвертации!');
@@ -161,15 +171,15 @@ class _MainScreen extends State<MainScreen> with WidgetsBindingObserver {
                   )
                 ],
               )),
-    ));
+        )));
   }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _loadData();
-    getXmlData();
+    // _loadData();
+    // getXmlData();
   }
 
   void _addToHistory(ListItem item, value) {
@@ -189,28 +199,28 @@ class _MainScreen extends State<MainScreen> with WidgetsBindingObserver {
 
   void _setDateOfUpdate(XmlDocument xml) {
     setState(() => dateOfUpdate =
-        'Дата обновления: ${xml.getElement('ValCurs')!.getAttribute('Date')}');
+    'Дата обновления: ${xml.getElement('ValCurs')!.getAttribute('Date')}');
   }
 
-  void getXmlData() {
-    http.get(Uri.http('www.cbr-xml-daily.ru', 'daily_utf8.xml')).then((res) {
-      if (xmlData.toString() == utf8.decode(res.bodyBytes)) {
-        showMessageDialog('Курс валют актуальный, обновление не требуется.');
-        return;
-      }
-      setState(() {
-        xmlData = XmlDocument.parse(utf8.decode(res.bodyBytes));
-        _setDateOfUpdate(xmlData);
-      });
-    }).catchError((e) {
-      showMessageDialog("Отсутствует соединение с сервером!");
-    });
-  }
+  // void getXmlData() {
+  //   http.get(Uri.http('www.cbr-xml-daily.ru', 'daily_utf8.xml')).then((res) {
+  //     if (xmlData.toString() == utf8.decode(res.bodyBytes)) {
+  //       showMessageDialog('Курс валют актуальный, обновление не требуется.');
+  //       return;
+  //     }
+  //     setState(() {
+  //       xmlData = XmlDocument.parse(utf8.decode(res.bodyBytes));
+  //       _setDateOfUpdate(xmlData);
+  //     });
+  //   }).catchError((e) {
+  //     showMessageDialog("Отсутствует соединение с сервером!");
+  //   });
+  // }
 
   Future<void> _pullRefresh() async {
-    setState(() => getXmlData());
+    // setState(() => getXmlData());
   }
-
+  //
   void showMessageDialog(String message) {
     showDialog(
         context: context,
@@ -227,15 +237,15 @@ class _MainScreen extends State<MainScreen> with WidgetsBindingObserver {
         });
   }
 
-  Future<List<ListItem>> _getItemsFromXml(BuildContext context) async {
-    return xmlData.findAllElements("Valute").map((e) {
-      return ListItem(
-          e.findElements("CharCode").first.innerText,
-          e.findElements("Name").first.innerText,
-          e.findElements("VunitRate").first.innerText,
-          e.findElements("Value").first.innerText);
-    }).toList();
-  }
+  // Future<List<ListItem>> _getItemsFromXml(BuildContext context) async {
+  //   return xmlData.findAllElements("Valute").map((e) {
+  //     return ListItem(
+  //         e.findElements("CharCode").first.innerText,
+  //         e.findElements("Name").first.innerText,
+  //         e.findElements("VunitRate").first.innerText,
+  //         e.findElements("Value").first.innerText);
+  //   }).toList();
+  // }
 
   void _selectMenuItem(int value) {
     switch (value) {
@@ -250,12 +260,12 @@ class _MainScreen extends State<MainScreen> with WidgetsBindingObserver {
 
   Future<void> _loadData() async {
     SharedPreferences.getInstance().then((prefs) =>
-      conversionsHistory = Conversion.decode(prefs.getString('conversions') ?? ""));
+    conversionsHistory = ConversionHandler.decode(prefs.getString('conversions') ?? ""));
   }
 
   Future<void> _saveData() async {
     SharedPreferences.getInstance().then((prefs) =>
-        prefs.setString('conversions', Conversion.encode(conversionsHistory)));
+        prefs.setString('conversions', ConversionHandler.encode(conversionsHistory)));
   }
 }
 

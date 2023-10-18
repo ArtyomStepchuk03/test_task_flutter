@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_task_flutter/conversion.dart';
 
 import 'package:test_task_flutter/pages/main_screen.dart';
+import 'package:test_task_flutter/utils/conversion/conversion_handler.dart';
 import 'package:xml/xml.dart';
 
 List<Conversion> conversions = [];
@@ -144,5 +145,5 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
 
 Future<void> _saveData() async {
   var prefs = await SharedPreferences.getInstance();
-  prefs.setString('conversions', Conversion.encode(conversionsHistory));
+  prefs.setString('conversions', ConversionHandler.encode(conversionsHistory));
 }
