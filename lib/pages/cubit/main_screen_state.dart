@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:test_task_flutter/list_item.dart';
 
 abstract class MainScreenState extends Equatable {
   const MainScreenState();
@@ -9,4 +10,6 @@ abstract class MainScreenState extends Equatable {
 
 class MainScreenInitial extends MainScreenState {}
 
-class MainScreenUpdated extends MainScreenState {}
+class MainScreenLoading extends MainScreenState {}
+
+class MainScreenLoaded extends MainScreenState {}

@@ -31,147 +31,148 @@ class _MainScreen extends State<MainScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(create: (context) => MainScreenCubit(context),
-    child: MaterialApp(
-        home: RefreshIndicator(
-          onRefresh: _pullRefresh,
-          child: Scaffold(
-              appBar: AppBar(title: const Text('Главная'),
-                  actions: [
-                    PopupMenuButton(
-                        icon: const Icon(Icons.menu),
-                        itemBuilder: (context) {
-                          return [
-                            const PopupMenuItem<int>(
-                                value: 1,
-                                child: Text("История операций")),
-                            const PopupMenuItem<int>(
-                              value: 0,
-                              child: Text("О приложении"),
-                            ),
-                          ];
-                        },
-                        onSelected: (value) => _selectMenuItem(value))
-                  ]),
-              body: Column(
-                children: [
-                  Padding(padding: const EdgeInsets.only(left: 10, top: 10, bottom: 10),
-                      child: Row(
-                          children: [
-                            BlocBuilder<MainScreenCubit, MainScreenState>(
-                                builder: (context, state) {
-                                  return Text(MainScreenCubit(context).date,
-                                      style: const TextStyle(fontSize: 20)
-                                  );
-                                }
-                            )
-                          ]
-                      )
-                  ),
-                  Expanded(
-                    child: FutureBuilder(
-                      future: MainScreenCubit(context).xmlItems,
-                      builder: (context, data) {
-                        if (data.hasData) {
-                          List<ListItem>? list = data.data;
+      child: MaterialApp(
+          home: RefreshIndicator(
+            onRefresh: _pullRefresh,
+            child: Scaffold(
+                appBar: AppBar(title: const Text('Главная'),
+                    actions: [
+                      PopupMenuButton(
+                          icon: const Icon(Icons.menu),
+                          itemBuilder: (context) {
+                            return [
+                              const PopupMenuItem<int>(
+                                  value: 1,
+                                  child: Text("История операций")),
+                              const PopupMenuItem<int>(
+                                value: 0,
+                                child: Text("О приложении"),
+                              ),
+                            ];
+                          },
+                          onSelected: (value) => _selectMenuItem(value))
+                    ]),
+                body: Column(
+                  children: [
+                    Padding(padding: const EdgeInsets.only(left: 10, top: 10, bottom: 10),
+                        child: Row(
+                            children: [
+                              BlocBuilder<MainScreenCubit, List<ListItem>>(
+                                  builder: (context, state) {
+                                    return Text(MainScreenCubit(context).date,
+                                        style: const TextStyle(fontSize: 20)
+                                    );
+                                  }
+                              )
+                            ]
+                        )
+                    ),
+                    Expanded(
+                      child: FutureBuilder(
+                        future: MainScreenCubit(context).xmlItems,
+                        builder: (context, data) {
+                          if (data.hasData) {
+                            List<ListItem>? list = data.data;
 
-                          return ListView.builder(
-                            itemCount: list?.length,
-                            itemBuilder: (context, index) {
-                              return ListTile(
-                                  onTap: () {
-                                    showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          String convertedValue = "";
-                                          return AlertDialog(
-                                            content: StatefulBuilder(
-                                              builder: (BuildContext context, StateSetter setState) {
-                                                return SizedBox(
-                                                  width: 100,
-                                                  height: 230,
-                                                  child: Column(
-                                                    children: [
-                                                      Text(
-                                                        list?[index].charCode,
-                                                        style: const TextStyle(
-                                                            fontSize: 20,
-                                                            fontWeight: FontWeight.bold),
-                                                      ),
-                                                      TextField(
-                                                        maxLength: 30,
-                                                        decoration: const InputDecoration(
-                                                            border: UnderlineInputBorder(),
-                                                            hintText: 'Введите сумму для конвертации'),
-                                                        inputFormatters: [
-                                                          TextInputFormatter.withFunction((oldValue, newValue) {
-                                                            value = int.parse(newValue
-                                                                .text.replaceAll(RegExp(r'[^0-9]'), ''));
-                                                            return TextEditingValue(text: value.toString());
-                                                          })
-                                                        ],
-                                                        keyboardType: TextInputType.number,
-                                                      ),
-                                                      const Padding(
-                                                        padding: EdgeInsets.only(top: 10),
-                                                        child: Text('RUB',
-                                                          style: TextStyle(
+                            return ListView.builder(
+                              itemCount: list?.length,
+                              itemBuilder: (context, index) {
+                                return ListTile(
+                                    onTap: () {
+                                      showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            String convertedValue = "";
+                                            return AlertDialog(
+                                              content: StatefulBuilder(
+                                                builder: (BuildContext context, StateSetter setState) {
+                                                  return SizedBox(
+                                                    width: 100,
+                                                    height: 230,
+                                                    child: Column(
+                                                      children: [
+                                                        Text(
+                                                          list?[index].charCode,
+                                                          style: const TextStyle(
                                                               fontSize: 20,
                                                               fontWeight: FontWeight.bold),
                                                         ),
-                                                      ),
-                                                      Padding(
-                                                          padding: const EdgeInsets.only(top: 10),
-                                                          child: Text(convertedValue,
-                                                            style: const TextStyle(fontSize: 25),
-                                                          )
-                                                      ),
-                                                      Padding(
-                                                          padding: const EdgeInsets.only(top: 10),
-                                                          child: TextButton(
-                                                            child: const Text('Конвертировать',
-                                                                style: TextStyle(fontSize: 20)
-                                                            ),
-                                                            onPressed: () {
-                                                              try {
-                                                                setState(() => convertedValue = convert(value, double.parse(
-                                                                    list![index].vunitRate
-                                                                        .toString()
-                                                                        .replaceAll(',', '.'))));
-                                                                _addToHistory(list![index], convertedValue);
-                                                              } catch (e) {
-                                                                showMessageDialog('Ошибка конвертации!');
-                                                              }
-                                                            },
-                                                          )),
-                                                    ],
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          );
-                                        });
-                                  },
-                                  title: Text("${list?[index].name} (${list?[index].charCode}):",
-                                      style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold)),
-                                  subtitle: Padding(
-                                    padding: const EdgeInsets.only(top: 5),
-                                    child: Text(list?[index].vunitRate,
-                                      style: const TextStyle(fontSize: 18),
-                                    ),
-                                  ));
-                            },
-                          );
-                        } else {
-                          return const Center(child: CircularProgressIndicator());
-                        }
-                      },
-                    ),
-                  )
-                ],
-              )),
-        )));
+                                                        TextField(
+                                                          maxLength: 30,
+                                                          decoration: const InputDecoration(
+                                                              border: UnderlineInputBorder(),
+                                                              hintText: 'Введите сумму для конвертации'),
+                                                          inputFormatters: [
+                                                            TextInputFormatter.withFunction((oldValue, newValue) {
+                                                              value = int.parse(newValue
+                                                                  .text.replaceAll(RegExp(r'[^0-9]'), ''));
+                                                              return TextEditingValue(text: value.toString());
+                                                            })
+                                                          ],
+                                                          keyboardType: TextInputType.number,
+                                                        ),
+                                                        const Padding(
+                                                          padding: EdgeInsets.only(top: 10),
+                                                          child: Text('RUB',
+                                                            style: TextStyle(
+                                                                fontSize: 20,
+                                                                fontWeight: FontWeight.bold),
+                                                          ),
+                                                        ),
+                                                        Padding(
+                                                            padding: const EdgeInsets.only(top: 10),
+                                                            child: Text(convertedValue,
+                                                              style: const TextStyle(fontSize: 25),
+                                                            )
+                                                        ),
+                                                        Padding(
+                                                            padding: const EdgeInsets.only(top: 10),
+                                                            child: TextButton(
+                                                              child: const Text('Конвертировать',
+                                                                  style: TextStyle(fontSize: 20)
+                                                              ),
+                                                              onPressed: () {
+                                                                try {
+                                                                  setState(() => convertedValue = convert(value, double.parse(
+                                                                      list![index].vunitRate
+                                                                          .toString()
+                                                                          .replaceAll(',', '.'))));
+                                                                  _addToHistory(list![index], convertedValue);
+                                                                } catch (e) {
+                                                                  showMessageDialog('Ошибка конвертации!');
+                                                                }
+                                                              },
+                                                            )),
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            );
+                                          });
+                                    },
+                                    title: Text("${list?[index].name} (${list?[index].charCode}):",
+                                        style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold)),
+                                    subtitle: Padding(
+                                      padding: const EdgeInsets.only(top: 5),
+                                      child: Text(list?[index].vunitRate,
+                                        style: const TextStyle(fontSize: 18),
+                                      ),
+                                    ));
+                              },
+                            );
+                          } else {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                        },
+                      ),
+                    )
+                  ],
+                )),
+          )
+      ));
   }
 
   @override

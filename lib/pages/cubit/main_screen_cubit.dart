@@ -7,17 +7,18 @@ import 'main_screen_state.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
 
-class MainScreenCubit extends Cubit<MainScreenState> {
+class MainScreenCubit extends Cubit<List<ListItem>> {
   String _date = "";
   XmlDocument xmlData = XmlDocument();
-  late Future<List<ListItem>> xmlItems;
+  late Future<List<ListItem>> _xmlItems;
   late BuildContext context;
 
-  MainScreenCubit(this.context) : super(MainScreenInitial()) {
+  MainScreenCubit(this.context) : super([]) {
     _getXmlData();
-    xmlItems = _getItemsFromXml(context);
+    emit([]);
+    _xmlItems = getItemsFromXml(context);
 
-    emit(MainScreenUpdated());
+    emit([]);
   }
 
   // Future<void> pullRefresh() async {
@@ -30,13 +31,24 @@ class MainScreenCubit extends Cubit<MainScreenState> {
 
   String get date => _date;
 
+
+  Future<List<ListItem>> get xmlItems => _xmlItems;
+
   void _getXmlData() {
+    print("_getXmlData");
     http.get(Uri.http('www.cbr-xml-daily.ru', 'daily_utf8.xml')).then((res) {
+      print(state);
+      print("_getXmlDataHttp");
       if (xmlData.toString() == utf8.decode(res.bodyBytes)) {
+        print("_getXmlDataHttpIF");
         showMessageDialog('Курс валют актуальный, обновление не требуется.');
+        return;
       } else {
+        print("_getXmlDataHttpELSE");
         xmlData = XmlDocument.parse(utf8.decode(res.bodyBytes));
         _setDateOfUpdate(xmlData);
+
+        print(date);
       }
     }).catchError((e) {
       showMessageDialog("Отсутствует соединение с сервером!");
@@ -59,7 +71,7 @@ class MainScreenCubit extends Cubit<MainScreenState> {
         });
   }
 
-  Future<List<ListItem>> _getItemsFromXml(BuildContext context) async {
+  Future<List<ListItem>> getItemsFromXml(BuildContext context) async {
     return xmlData.findAllElements("Valute").map((e) {
       return ListItem(
           e.findElements("CharCode").first.innerText,
