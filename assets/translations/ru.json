@@ -1,0 +1,16 @@
+{
+  "main": "Главная",
+  "operations_history": "История операций",
+  "about_app": "О приложении",
+  "about_developer": {
+    "title": "О разработчике",
+    "content": "Какая-то информация о разработчике"
+  },
+  "libraries": "Библиотеки",
+  "folder_selection": "Выбор папки",
+  "save_into_this_folder": "Сохранить в эту папку",
+  "file_name": "Имя файла",
+  "enter_file_name": "Добавьте имя файла",
+  "ok": "Ок",
+  "language": "Язык"
+}

@@ -1,3 +1,5 @@
+/// An object which contains information about currency.
+/// The list of currencies in main screen is filled with this object.
 class ListItem {
   final String _charCode, _name, _vunitRate, _value;
 

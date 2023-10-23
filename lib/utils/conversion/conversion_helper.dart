@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:test_task_flutter/conversion.dart';
+import 'package:test_task_flutter/utils/conversion/conversion.dart';
 
-class ConversionHandler {
+class ConversionHelper {
   static Map<String, dynamic> toMap(Conversion conversion) => {
     'startCurrency': conversion.startCurrency,
     'endCurrency': conversion.endCurrency,
@@ -13,7 +13,7 @@ class ConversionHandler {
 
   static String encode(List<Conversion> list) => json.encode(
     list.map<Map<String, dynamic>>(
-            (item) => ConversionHandler.toMap(item)
+            (item) => ConversionHelper.toMap(item)
     ).toList(),
   );
 

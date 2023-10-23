@@ -1,3 +1,4 @@
+/// An object which contains information about single conversion
 class Conversion {
   final String _startCurrency, _endCurrency, _dateAndTime, _startValue, _endValue;
 

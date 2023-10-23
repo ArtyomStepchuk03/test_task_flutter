@@ -1,5 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
+/// This screen contains information about developer and about used libraries.
 class AboutApp extends StatelessWidget {
   const AboutApp({super.key});
 
@@ -7,17 +9,17 @@ class AboutApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('О приложении'),
+        title: Text('about_app'.tr()),
       ),
-      body: const SafeArea(
+      body: SafeArea(
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.only(left: 10, top: 10),
+              padding: const EdgeInsets.only(left: 10, top: 10),
               child: Row(
                 children: [
-                  Text('О Разработчике',
-                    style: TextStyle(
+                  Text('about_developer.title'.tr(),
+                    style: const TextStyle(
                       fontSize: 25,
                       fontWeight: FontWeight.bold,
                     ),
@@ -26,15 +28,13 @@ class AboutApp extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: EdgeInsets.only(left: 10, top: 10),
+              padding: const EdgeInsets.only(left: 10, top: 10),
               child: Row(
                 children: [
                   SizedBox(
                     width: 350,
-                    child: Text('Данный пробник на мобильное приложение разработал студент 3 курса Томского '
-                        'политехнического университета. Я постоянно стремлюсь к развитию и всегда рад получить новые знания. '
-                        'Скажу кратко... Возьмёте меня - не пожалеете (:',
-                      style: TextStyle(
+                    child: Text('about_developer.content'.tr(),
+                      style: const TextStyle(
                         fontSize: 20,
                       ),
                     ),
@@ -43,11 +43,11 @@ class AboutApp extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: EdgeInsets.only(left: 10, top: 10),
+              padding: const EdgeInsets.only(left: 10, top: 10),
               child: Row(
                 children: [
-                  Text('Библиотеки',
-                    style: TextStyle(
+                  Text('libraries'.tr(),
+                    style: const TextStyle(
                       fontSize: 25,
                       fontWeight: FontWeight.bold,
                     ),
@@ -55,7 +55,7 @@ class AboutApp extends StatelessWidget {
                 ],
               ),
             ),
-            Padding(
+            const Padding(
               padding: EdgeInsets.only(left: 10, top: 10),
               child: Row(
                 children: [

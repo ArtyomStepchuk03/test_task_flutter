@@ -1,18 +1,20 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test_task_flutter/conversion.dart';
+import 'package:test_task_flutter/utils/conversion/conversion.dart';
 
 import 'package:test_task_flutter/pages/main_screen.dart';
-import 'package:test_task_flutter/utils/conversion/conversion_handler.dart';
+import 'package:test_task_flutter/utils/conversion/conversion_helper.dart';
 import 'package:xml/xml.dart';
 
 List<Conversion> conversions = [];
 
+/// This screen contains list of all conversions.
 class History extends StatefulWidget with WidgetsBindingObserver {
   const History({super.key});
 
@@ -27,18 +29,18 @@ class _History extends State<History> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('История операций'),
+        title: Text('operations_history'.tr()),
         actions: [
           IconButton(
               onPressed: () async {
                 String? path = await FilesystemPicker.open(
                   rootDirectory: await getApplicationDocumentsDirectory(),
                   context: context,
-                  title: 'Выбор папки',
+                  title: 'folder_selection'.tr(),
                   contextActions: [
                     FilesystemPickerNewFolderContextAction(),
                   ],
-                  pickText: 'Сохранить в эту папку',
+                  pickText: 'Save into this folder'.tr(),
                   allowedExtensions: ['.xml'],
                   fileTileSelectMode: FileTileSelectMode.wholeTile,
                 );
@@ -61,13 +63,13 @@ class _History extends State<History> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text("Название файла"),
+            title: Text('file_name'.tr()),
             actions: <Widget>[
               TextField(
                 maxLength: 30,
-                decoration: const InputDecoration(
-                    border: UnderlineInputBorder(),
-                    hintText: 'Введите название файла'),
+                decoration: InputDecoration(
+                    border: const UnderlineInputBorder(),
+                    hintText: 'enter_file_name'.tr()),
                 inputFormatters: [
                   TextInputFormatter.withFunction((oldValue, newValue) {
                     res = newValue.text;
@@ -76,7 +78,7 @@ class _History extends State<History> {
                 ],
               ),
               TextButton(
-                child: const Text('Ок'),
+                child: Text('ok'.tr()),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -145,5 +147,5 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
 
 Future<void> _saveData() async {
   var prefs = await SharedPreferences.getInstance();
-  prefs.setString('conversions', ConversionHandler.encode(conversionsHistory));
+  prefs.setString('conversions', ConversionHelper.encode(conversionsHistory));
 }

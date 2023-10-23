@@ -1,14 +1,16 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:test_task_flutter/conversion.dart';
+import 'package:test_task_flutter/pages/cubit/main_screen_date_cubit.dart';
+import 'package:test_task_flutter/utils/conversion/conversion.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_task_flutter/pages/cubit/main_screen_cubit.dart';
 import 'package:test_task_flutter/pages/cubit/main_screen_state.dart';
-import 'package:test_task_flutter/utils/conversion/conversion_handler.dart';
+import 'package:test_task_flutter/utils/conversion/conversion_helper.dart';
 import 'package:xml/xml.dart';
 import 'package:http/http.dart' as http;
 import 'package:test_task_flutter/list_item.dart';
@@ -18,6 +20,7 @@ String dateOfUpdate = '';
 var value = 0;
 // XmlDocument xmlData = XmlDocument();
 
+/// Main screen which contains date of the last update and list of
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -30,23 +33,32 @@ class MainScreen extends StatefulWidget {
 class _MainScreen extends State<MainScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(create: (context) => MainScreenCubit(context),
+    context.setLocale(const Locale('ru'));
+    return MultiBlocProvider(providers: [
+      BlocProvider(create: (context) => MainScreenCubit(context)),
+      BlocProvider(create: (context) => MainScreenDateCubit(context)),
+    ],
       child: MaterialApp(
           home: RefreshIndicator(
             onRefresh: _pullRefresh,
             child: Scaffold(
-                appBar: AppBar(title: const Text('Главная'),
+                appBar: AppBar(title: Text('main'.tr()),
                     actions: [
                       PopupMenuButton(
                           icon: const Icon(Icons.menu),
                           itemBuilder: (context) {
                             return [
-                              const PopupMenuItem<int>(
-                                  value: 1,
-                                  child: Text("История операций")),
-                              const PopupMenuItem<int>(
+                              PopupMenuItem<int>(
                                 value: 0,
-                                child: Text("О приложении"),
+                                child: Text('about_app'.tr())
+                              ),
+                              PopupMenuItem<int>(
+                                value: 1,
+                                child: Text('operations_history'.tr())
+                              ),
+                              PopupMenuItem<int>(
+                                value: 2,
+                                child: Text('language'.tr())
                               ),
                             ];
                           },
@@ -57,118 +69,123 @@ class _MainScreen extends State<MainScreen> with WidgetsBindingObserver {
                     Padding(padding: const EdgeInsets.only(left: 10, top: 10, bottom: 10),
                         child: Row(
                             children: [
-                              BlocBuilder<MainScreenCubit, List<ListItem>>(
+                              BlocBuilder<MainScreenCubit, MainScreenState>(
                                   builder: (context, state) {
-                                    return Text(MainScreenCubit(context).date,
-                                        style: const TextStyle(fontSize: 20)
-                                    );
-                                  }
-                              )
+                                    return BlocProvider(create: (context) => MainScreenCubit.create(context),
+                                        child: BlocBuilder<MainScreenDateCubit, MainScreenState>(
+                                          builder: (context, state) {
+                                            return Text(
+                                              state.toString(),
+                                              style: const TextStyle(fontSize: 20,
+                                                  fontWeight: FontWeight.bold));
+                                          },
+                                        ));
+                                  })
                             ]
                         )
                     ),
-                    Expanded(
-                      child: FutureBuilder(
-                        future: MainScreenCubit(context).xmlItems,
-                        builder: (context, data) {
-                          if (data.hasData) {
-                            List<ListItem>? list = data.data;
-
-                            return ListView.builder(
-                              itemCount: list?.length,
-                              itemBuilder: (context, index) {
-                                return ListTile(
-                                    onTap: () {
-                                      showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            String convertedValue = "";
-                                            return AlertDialog(
-                                              content: StatefulBuilder(
-                                                builder: (BuildContext context, StateSetter setState) {
-                                                  return SizedBox(
-                                                    width: 100,
-                                                    height: 230,
-                                                    child: Column(
-                                                      children: [
-                                                        Text(
-                                                          list?[index].charCode,
-                                                          style: const TextStyle(
-                                                              fontSize: 20,
-                                                              fontWeight: FontWeight.bold),
-                                                        ),
-                                                        TextField(
-                                                          maxLength: 30,
-                                                          decoration: const InputDecoration(
-                                                              border: UnderlineInputBorder(),
-                                                              hintText: 'Введите сумму для конвертации'),
-                                                          inputFormatters: [
-                                                            TextInputFormatter.withFunction((oldValue, newValue) {
-                                                              value = int.parse(newValue
-                                                                  .text.replaceAll(RegExp(r'[^0-9]'), ''));
-                                                              return TextEditingValue(text: value.toString());
-                                                            })
-                                                          ],
-                                                          keyboardType: TextInputType.number,
-                                                        ),
-                                                        const Padding(
-                                                          padding: EdgeInsets.only(top: 10),
-                                                          child: Text('RUB',
-                                                            style: TextStyle(
-                                                                fontSize: 20,
-                                                                fontWeight: FontWeight.bold),
-                                                          ),
-                                                        ),
-                                                        Padding(
-                                                            padding: const EdgeInsets.only(top: 10),
-                                                            child: Text(convertedValue,
-                                                              style: const TextStyle(fontSize: 25),
-                                                            )
-                                                        ),
-                                                        Padding(
-                                                            padding: const EdgeInsets.only(top: 10),
-                                                            child: TextButton(
-                                                              child: const Text('Конвертировать',
-                                                                  style: TextStyle(fontSize: 20)
-                                                              ),
-                                                              onPressed: () {
-                                                                try {
-                                                                  setState(() => convertedValue = convert(value, double.parse(
-                                                                      list![index].vunitRate
-                                                                          .toString()
-                                                                          .replaceAll(',', '.'))));
-                                                                  _addToHistory(list![index], convertedValue);
-                                                                } catch (e) {
-                                                                  showMessageDialog('Ошибка конвертации!');
-                                                                }
-                                                              },
-                                                            )),
-                                                      ],
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            );
-                                          });
-                                    },
-                                    title: Text("${list?[index].name} (${list?[index].charCode}):",
-                                        style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold)),
-                                    subtitle: Padding(
-                                      padding: const EdgeInsets.only(top: 5),
-                                      child: Text(list?[index].vunitRate,
-                                        style: const TextStyle(fontSize: 18),
-                                      ),
-                                    ));
-                              },
-                            );
-                          } else {
-                            return const Center(child: CircularProgressIndicator());
-                          }
-                        },
-                      ),
-                    )
+                    // Expanded(
+                    //   child: FutureBuilder(
+                    //     future: MainScreenCubit(context).xmlItemsFuture,
+                    //     builder: (context, data) {
+                    //       if (data.hasData) {
+                    //         List<ListItem>? list = data.data;
+                    //
+                    //         return ListView.builder(
+                    //           itemCount: list?.length,
+                    //           itemBuilder: (context, index) {
+                    //             return ListTile(
+                    //                 onTap: () {
+                    //                   showDialog(
+                    //                       context: context,
+                    //                       builder: (BuildContext context) {
+                    //                         String convertedValue = "";
+                    //                         return AlertDialog(
+                    //                           content: StatefulBuilder(
+                    //                             builder: (BuildContext context, StateSetter setState) {
+                    //                               return SizedBox(
+                    //                                 width: 100,
+                    //                                 height: 230,
+                    //                                 child: Column(
+                    //                                   children: [
+                    //                                     Text(
+                    //                                       list?[index].charCode,
+                    //                                       style: const TextStyle(
+                    //                                           fontSize: 20,
+                    //                                           fontWeight: FontWeight.bold),
+                    //                                     ),
+                    //                                     TextField(
+                    //                                       maxLength: 30,
+                    //                                       decoration: const InputDecoration(
+                    //                                           border: UnderlineInputBorder(),
+                    //                                           hintText: 'Введите сумму для конвертации'),
+                    //                                       inputFormatters: [
+                    //                                         TextInputFormatter.withFunction((oldValue, newValue) {
+                    //                                           value = int.parse(newValue
+                    //                                               .text.replaceAll(RegExp(r'[^0-9]'), ''));
+                    //                                           return TextEditingValue(text: value.toString());
+                    //                                         })
+                    //                                       ],
+                    //                                       keyboardType: TextInputType.number,
+                    //                                     ),
+                    //                                     const Padding(
+                    //                                       padding: EdgeInsets.only(top: 10),
+                    //                                       child: Text('RUB',
+                    //                                         style: TextStyle(
+                    //                                             fontSize: 20,
+                    //                                             fontWeight: FontWeight.bold),
+                    //                                       ),
+                    //                                     ),
+                    //                                     Padding(
+                    //                                         padding: const EdgeInsets.only(top: 10),
+                    //                                         child: Text(convertedValue,
+                    //                                           style: const TextStyle(fontSize: 25),
+                    //                                         )
+                    //                                     ),
+                    //                                     Padding(
+                    //                                         padding: const EdgeInsets.only(top: 10),
+                    //                                         child: TextButton(
+                    //                                           child: const Text('Конвертировать',
+                    //                                               style: TextStyle(fontSize: 20)
+                    //                                           ),
+                    //                                           onPressed: () {
+                    //                                             try {
+                    //                                               setState(() => convertedValue = convert(value, double.parse(
+                    //                                                   list![index].vunitRate
+                    //                                                       .toString()
+                    //                                                       .replaceAll(',', '.'))));
+                    //                                               _addToHistory(list![index], convertedValue);
+                    //                                             } catch (e) {
+                    //                                               showMessageDialog('Ошибка конвертации!');
+                    //                                             }
+                    //                                           },
+                    //                                         )),
+                    //                                   ],
+                    //                                 ),
+                    //                               );
+                    //                             },
+                    //                           ),
+                    //                         );
+                    //                       });
+                    //                 },
+                    //                 title: Text("${list?[index].name} (${list?[index].charCode}):",
+                    //                     style: const TextStyle(
+                    //                         fontSize: 20,
+                    //                         fontWeight: FontWeight.bold)),
+                    //                 subtitle: Padding(
+                    //                   padding: const EdgeInsets.only(top: 5),
+                    //                   child: Text(list?[index].vunitRate,
+                    //                     style: const TextStyle(fontSize: 18),
+                    //                   ),
+                    //                 ));
+                    //           },
+                    //         );
+                    //       } else {
+                    //         return const Center(child: CircularProgressIndicator());
+                    //       }
+                    //     },
+                    //   ),
+                    // )
                   ],
                 )),
           )
@@ -198,10 +215,10 @@ class _MainScreen extends State<MainScreen> with WidgetsBindingObserver {
     _saveData();
   }
 
-  void _setDateOfUpdate(XmlDocument xml) {
-    setState(() => dateOfUpdate =
-    'Дата обновления: ${xml.getElement('ValCurs')!.getAttribute('Date')}');
-  }
+  // void _setDateOfUpdate(XmlDocument xml) {
+  //   setState(() => dateOfUpdate =
+  //   'Дата обновления: ${xml.getElement('ValCurs')!.getAttribute('Date')}');
+  // }
 
   // void getXmlData() {
   //   http.get(Uri.http('www.cbr-xml-daily.ru', 'daily_utf8.xml')).then((res) {
@@ -256,17 +273,20 @@ class _MainScreen extends State<MainScreen> with WidgetsBindingObserver {
       case 1:
         Navigator.pushNamed(context, '/history');
         break;
+      case 2:
+        Navigator.pushNamed(context, '/history');
+        break;
     }
   }
 
   Future<void> _loadData() async {
     SharedPreferences.getInstance().then((prefs) =>
-    conversionsHistory = ConversionHandler.decode(prefs.getString('conversions') ?? ""));
+    conversionsHistory = ConversionHelper.decode(prefs.getString('conversions') ?? ""));
   }
 
   Future<void> _saveData() async {
     SharedPreferences.getInstance().then((prefs) =>
-        prefs.setString('conversions', ConversionHandler.encode(conversionsHistory)));
+        prefs.setString('conversions', ConversionHelper.encode(conversionsHistory)));
   }
 }
 

@@ -1,0 +1,16 @@
+{
+  "main": "Main",
+  "operations_history": "Operations History",
+  "about_app": "About app",
+  "about_developer": {
+    "title": "About developer",
+    "content": "Some information about developer..."
+  },
+  "libraries": "Libraries",
+  "folder_selection": "Folder selection",
+  "save_into_this_folder": "Save into this folder",
+  "file_name": "File name",
+  "enter_file_name": "Enter file name",
+  "ok": "Ok",
+  "language": "Language"
+}
