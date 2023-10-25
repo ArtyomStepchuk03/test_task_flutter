@@ -1,10 +1,11 @@
-import 'package:equatable/equatable.dart';
+class MainScreenState {
+  late MainScreenDateState mainScreenDateState;
 
-class MainScreenState extends Equatable {
-  const MainScreenState();
+  MainScreenState() {
+    mainScreenDateState = MainScreenDateState("");
+  }
 
-  @override
-  List<Object?> get props => [];
+  MainScreenState.empty();
 }
 
 class MainScreenInitial extends MainScreenState {}
@@ -14,8 +15,5 @@ class MainScreenLoading extends MainScreenState {}
 class MainScreenDateState extends MainScreenState {
   final String date;
 
-  const MainScreenDateState(this.date);
-
-  @override
-  List<Object?> get props => [];
+  MainScreenDateState(this.date) : super.empty();
 }

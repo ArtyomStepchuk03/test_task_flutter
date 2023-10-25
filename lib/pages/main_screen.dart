@@ -74,10 +74,11 @@ class _MainScreen extends State<MainScreen> with WidgetsBindingObserver {
                                     return BlocProvider(create: (context) => MainScreenCubit.create(context),
                                         child: BlocBuilder<MainScreenDateCubit, MainScreenState>(
                                           builder: (context, state) {
+                                            print("BlocBuilder");
                                             return Text(
-                                              state.toString(),
-                                              style: const TextStyle(fontSize: 20,
-                                                  fontWeight: FontWeight.bold));
+                                                state.mainScreenDateState.date,
+                                                style: const TextStyle(fontSize: 20,
+                                                    fontWeight: FontWeight.bold));
                                           },
                                         ));
                                   })

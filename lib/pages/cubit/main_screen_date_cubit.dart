@@ -10,13 +10,13 @@ import 'package:http/http.dart' as http;
 class MainScreenDateCubit extends MainScreenCubit {
   late String _date;
   MainScreenDateCubit(super.context) {
-    print("xmlData");
+    print("xmlDataMainScreenDateCubit");
     print(xmlData);
     createDateOfUpdate(xmlData);
     // emit(MainScreenDateState(_date));
   }
 
-  void createDateOfUpdate(XmlDocument xml) {
+  void createDateOfUpdate(XmlDocument xml) async {
     print("_setDateOfUpdate");
     _date = 'Дата обновления: ${xml.getElement('ValCurs')!.getAttribute('Date')}';
     emit(MainScreenDateState(_date));

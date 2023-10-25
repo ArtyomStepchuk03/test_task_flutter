@@ -9,57 +9,56 @@ import 'main_screen_state.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
 
+abstract class MainCubits extends Cubit<MainScreenState> {
+  MainCubits(super.initialState);
+
+}
+
 class MainScreenCubit extends Cubit<MainScreenState> {
   BuildContext context;
   XmlDocument xmlData = XmlDocument();
 
-  MainScreenCubit(this.context) : super(const MainScreenState()) {
-    () async {
-      await _getXmlData();
-    };
+  MainScreenCubit(this.context) : super(MainScreenInitial()) {
+    // _getXmlData();
   }
 
   factory MainScreenCubit.create(BuildContext context) {
     return MainScreenDateCubit(context);
-    // switch(state) {
-    //   case MainScreenDateState:
-    //     return MainScreenCubit(context);
-    // }
   }
 
-  Future<void> _getXmlData() async {
-    Response httpResponse = await http.get(Uri.http('www.cbr-xml-daily.ru', 'daily_utf8.xml'))
-        .catchError((e) {
-          showMessageDialog("Отсутствует соединение с сервером!");
-        });
-    await _openHttpResponse(httpResponse);
-  }
-
-  Future<void> _openHttpResponse(http.Response response) async {
-    if (xmlData.toString() == utf8.decode(response.bodyBytes)) {
-      showMessageDialog('Курс валют актуальный, обновление не требуется.');
-    } else {
-      xmlData = XmlDocument.parse(utf8.decode(response.bodyBytes));
-      print("xmlData");
-      print(xmlData);
-    }
-  }
-
-  void showMessageDialog(String message) {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text(message),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('Ок'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          );
-        });
-  }
+  // void _getXmlData() async {
+  //   Response httpResponse = await http.get(Uri.http('www.cbr-xml-daily.ru', 'daily_utf8.xml'))
+  //       .catchError((e) {
+  //         showMessageDialog("Отсутствует соединение с сервером!");
+  //       });
+  //   await _openHttpResponse(httpResponse);
+  // }
+  //
+  // Future<void> _openHttpResponse(http.Response response) async {
+  //   if (xmlData.toString() == utf8.decode(response.bodyBytes)) {
+  //     showMessageDialog('Курс валют актуальный, обновление не требуется.');
+  //   } else {
+  //     xmlData = XmlDocument.parse(utf8.decode(response.bodyBytes));
+  //     print("xmlData");
+  //     print(xmlData);
+  //   }
+  // }
+  //
+  // void showMessageDialog(String message) {
+  //   showDialog(
+  //       context: context,
+  //       builder: (BuildContext context) {
+  //         return AlertDialog(
+  //           title: Text(message),
+  //           actions: <Widget>[
+  //             TextButton(
+  //               child: const Text('Ок'),
+  //               onPressed: () => Navigator.of(context).pop(),
+  //             ),
+  //           ],
+  //         );
+  //       });
+  // }
 }
 
 // class MainScreenCubit extends Cubit<MainScreenState> {
